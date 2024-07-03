@@ -92,3 +92,9 @@ dependencies:
   flutter:
     sdk: flutter
   flutter_blue: ^0.8.1
+
+dependencies:
+  flutter:
+    sdk: flutter
+  http: ^0.14.0
+
