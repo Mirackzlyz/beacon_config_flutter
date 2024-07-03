@@ -27,11 +27,14 @@ class DeviceInfo {
 }
 
 
+
+
 class _Page1State extends State<Page1> {
   final TextEditingController _controller1 = TextEditingController();
   final TextEditingController _controller2 = TextEditingController();
   String dropdownValue = 'One';
   bool isWhitelistMode = false;
+  String rssi = '0';
   List<String> selectableItems = []; // Initialize as an empty growable list
   List<bool> selectedItemStatus = []; // Initialize as an empty growable list
 
@@ -55,6 +58,17 @@ class _Page1State extends State<Page1> {
       if (index >= 0 && index < selectableItems.length) {
         selectableItems.removeAt(index);
         selectedItemStatus.removeAt(index); // Ensure selectedItemStatus is updated accordingly
+      }
+    });
+
+  }
+  void removeSelectedItems() {
+    setState(() {
+      for (int i = selectedItemStatus.length - 1; i >= 0; i--) {
+        if (selectedItemStatus[i]) {
+          selectableItems.removeAt(i);
+          selectedItemStatus.removeAt(i);
+        }
       }
     });
   }
@@ -106,6 +120,20 @@ class _Page1State extends State<Page1> {
             ),
           ),
           Expanded(
+            //text that shows the rss value
+            child: Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: <Widget>[
+                  Text(
+                    'RSSI Value: ' + rssi,
+                    style: Theme.of(context).textTheme.headline4,
+                  ),
+                ],
+              ),
+            ),
+          ),
+          Expanded(
             flex: 2,
             child: Center(
               child: Column(
@@ -129,7 +157,13 @@ class _Page1State extends State<Page1> {
 
                         },
                         child: Text('Clear List'),
-                      )
+                      ),
+                      ElevatedButton(
+                        onPressed: () {
+                          removeSelectedItems();
+                        },
+                        child: Text('Delete MAC List'),
+                      ),
                     ],
                   ),
                   Row(
@@ -165,6 +199,7 @@ class _Page1State extends State<Page1> {
                       ElevatedButton(
                         onPressed: () {
                           // Handle the button press
+                          setRssiThreshold(_controller2.text);
                         },
                         child: const Text('Set RSSI Threshold'),
                       ),
@@ -196,7 +231,9 @@ class _Page1State extends State<Page1> {
     );
   }
 
+  void setRssiThreshold(String text) {
 
+  }
 
 
 }
