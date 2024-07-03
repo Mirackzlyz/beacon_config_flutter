@@ -1,0 +1,28 @@
+$body = @{
+    mac = "00:11:22:33:44:55"
+} | ConvertTo-Json
+
+$response = Invoke-WebRequest -Uri "http://10.34.82.169:80/addMac" -Method Post -ContentType "application/json" -Body $body
+$response.Content
+
+
+
+$response = Invoke-WebRequest -Uri "http://10.34.82.169:80/getMacs" -Method Get
+$response.Content
+
+
+$body = @{
+    mac = "[\"ab:cd:12:34:56:78\"
+} | ConvertTo-Json
+
+$response = Invoke-WebRequest -Uri "http://10.34.82.169:80/removeMac" -Method Post -ContentType "application/json" -Body $body
+$response.Content
+
+
+
+$body = @{
+    rssiThreshold = -70
+} | ConvertTo-Json
+
+$response = Invoke-WebRequest -Uri "http://10.34.82.169:80/updateRssi" -Method Post -ContentType "application/json" -Body $body
+$response.Content
