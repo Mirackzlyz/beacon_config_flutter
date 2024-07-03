@@ -1,12 +1,16 @@
+import 'dart:html';
+
 import 'package:flutter/material.dart';
 import 'custom_drawer.dart';
-
+import 'dart:convert';
 class Page1 extends StatefulWidget {
   const Page1({super.key});
 
   @override
   _Page1State createState() => _Page1State();
 }
+
+
 
 class DeviceInfo {
   String rssi;
@@ -34,15 +38,31 @@ class _Page1State extends State<Page1> {
   final TextEditingController _controller2 = TextEditingController();
   String dropdownValue = 'One';
   bool isWhitelistMode = false;
+  bool isThresholdEnabled = true;
   String rssi = '0';
   List<String> selectableItems = []; // Initialize as an empty growable list
   List<bool> selectedItemStatus = []; // Initialize as an empty growable list
+  int scanInterval = 5000; // Default value for scan interval
+  int scanDuration = 5000; // Default value for scan duration
 
   @override
   void initState() {
     super.initState();
     // Initialize selectedItemStatus with the correct length
     selectedItemStatus = List<bool>.filled(selectableItems.length, false, growable: true);
+  }
+
+  String buildJson() {
+    Map<String, dynamic> data = {
+      "macAddresses": selectableItems,
+      "tresholdEnabled": isThresholdEnabled,
+      "rssiThreshold": int.tryParse(rssi) ?? 0,
+      "listMode": isWhitelistMode ? "whitelist" : "blacklist",
+      "scanInterval": scanInterval,
+      "scanDuration": scanDuration,
+    };
+
+    return jsonEncode(data);
   }
 
   void addItem(String item) {
@@ -86,10 +106,12 @@ class _Page1State extends State<Page1> {
         title: const Text('Configurations Page'),
       ),
       drawer: CustomDrawer(),
-      body: Column(
-        children: <Widget>[
-          Expanded(
-            child: Container(
+      body: SingleChildScrollView(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: <Widget>[
+            Container(
+              margin: EdgeInsets.all(10),
               decoration: BoxDecoration(
                 border: Border.all(
                   color: Colors.grey, // Color of the border
@@ -97,6 +119,7 @@ class _Page1State extends State<Page1> {
                 ),
               ),
               child: ListView.builder(
+                shrinkWrap: true,
                 itemCount: selectableItems.length,
                 itemBuilder: (context, index) {
                   return ListTile(
@@ -118,24 +141,74 @@ class _Page1State extends State<Page1> {
                 },
               ),
             ),
-          ),
-          Expanded(
-            //text that shows the rss value
-            child: Center(
+            Padding(
+              padding: const EdgeInsets.all(10.0),
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: <Widget>[
                   Text(
-                    'RSSI Value: ' + rssi,
+                    'RSSI Threshold Value: ' + rssi,
                     style: Theme.of(context).textTheme.headline4,
+                  ),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text('Mode: '),
+                      Switch(
+                        value: isWhitelistMode,
+                        onChanged: (value) {
+                          setState(() {
+                            isWhitelistMode = value;
+                          });
+                        },
+                      ),
+                      Text(isWhitelistMode ? 'Whitelist' : 'Blacklist'),
+                      Spacer(),
+                      const Text('Threshold: '),
+                      Switch(
+                        value: isThresholdEnabled,
+                        onChanged: (value) {
+                          setState(() {
+                            isThresholdEnabled = value;
+                          });
+                        },
+                      ),
+                      Text(isThresholdEnabled ? 'Enabled' : 'Disabled'),
+                    ],
+                  ),
+                  SizedBox(height: 10),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: TextFormField(
+                          decoration: InputDecoration(
+                            hintText: 'Enter scan interval (ms)',
+                          ),
+                          keyboardType: TextInputType.number,
+                          onChanged: (value) {
+                            scanInterval = int.tryParse(value) ?? 5000;
+                          },
+                        ),
+                      ),
+                      SizedBox(width: 10),
+                      Expanded(
+                        child: TextFormField(
+                          decoration: InputDecoration(
+                            hintText: 'Enter scan duration (ms)',
+                          ),
+                          keyboardType: TextInputType.number,
+                          onChanged: (value) {
+                            scanDuration = int.tryParse(value) ?? 5000;
+                          },
+                        ),
+                      ),
+                    ],
                   ),
                 ],
               ),
             ),
-          ),
-          Expanded(
-            flex: 2,
-            child: Center(
+            Padding(
+              padding: const EdgeInsets.all(10.0),
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: <Widget>[
@@ -153,8 +226,7 @@ class _Page1State extends State<Page1> {
                       ElevatedButton(
                         onPressed: () {
                           // Handle the button press
-                           clearList();
-
+                          clearList();
                         },
                         child: Text('Clear List'),
                       ),
@@ -166,6 +238,7 @@ class _Page1State extends State<Page1> {
                       ),
                     ],
                   ),
+                  SizedBox(height: 10),
                   Row(
                     children: [
                       Expanded(
@@ -176,16 +249,16 @@ class _Page1State extends State<Page1> {
                           ),
                         ),
                       ),
+                      SizedBox(width: 10),
                       ElevatedButton(
                         onPressed: () {
-                          // Handle the button press
                           addItem(_controller1.text);
-
                         },
                         child: const Text('Add Mac to List'),
                       ),
                     ],
                   ),
+                  SizedBox(height: 10),
                   Row(
                     children: [
                       Expanded(
@@ -196,15 +269,23 @@ class _Page1State extends State<Page1> {
                           ),
                         ),
                       ),
+                      SizedBox(width: 10),
                       ElevatedButton(
                         onPressed: () {
-                          // Handle the button press
                           setRssiThreshold(_controller2.text);
                         },
                         child: const Text('Set RSSI Threshold'),
                       ),
                     ],
                   ),
+                  SizedBox(height: 10),
+                  ElevatedButton(
+                    onPressed: () {
+                      print(buildJson());
+                    },
+                    child: const Text('Print JSON'),
+                  ),
+                  SizedBox(height: 10),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
@@ -216,22 +297,31 @@ class _Page1State extends State<Page1> {
                       ),
                     ],
                   ),
+                  SizedBox(height: 10),
                   ElevatedButton(
                     onPressed: () {
                       // Handle the second button press
                     },
                     child: const Text('Upload Configurations'),
                   ),
+                  SizedBox(height: 10),
                 ],
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
 
+
+
   void setRssiThreshold(String text) {
+    setState(() {
+      rssi = text;
+    });
+
+
 
   }
 
