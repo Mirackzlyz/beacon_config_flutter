@@ -32,34 +32,38 @@ class _Page1State extends State<Page1> {
   final TextEditingController _controller2 = TextEditingController();
   String dropdownValue = 'One';
   bool isWhitelistMode = false;
-  List<String> selectableItems = [
-    'Item 1',
-    'Item 2',
-    'Item 3'
-    'Item 4',
-    'Item 5',
-    'Item 6',
-    'Item 7',
-    'Item 8',
-    'Item 9',
-    'Item 10',
-    'Item 11',
-    'Item 12',
-    'Item 13',
-    'Item 14',
-    'Item 15',
-    'Item 16',
-    'Item 17',
-    'Item 18',
-    'Item 19',
-    'Item 20',
+  List<String> selectableItems = []; // Initialize as an empty growable list
+  List<bool> selectedItemStatus = []; // Initialize as an empty growable list
 
-  ]; // Step 1: Define the list of items
-  List<bool> selectedItemStatus = [
-    false,
-    false,
-    false
-  ]; // Tracks which items are selected
+  @override
+  void initState() {
+    super.initState();
+    // Initialize selectedItemStatus with the correct length
+    selectedItemStatus = List<bool>.filled(selectableItems.length, false, growable: true);
+  }
+
+  void addItem(String item) {
+    setState(() {
+      selectableItems.add(item);
+      selectedItemStatus.add(false); // Ensure selectedItemStatus is updated accordingly
+
+    });
+  }
+
+  void removeItem(int index) {
+    setState(() {
+      if (index >= 0 && index < selectableItems.length) {
+        selectableItems.removeAt(index);
+        selectedItemStatus.removeAt(index); // Ensure selectedItemStatus is updated accordingly
+      }
+    });
+  }
+  void clearList() {
+    setState(() {
+      selectableItems.clear();
+      selectedItemStatus.clear();
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -70,47 +74,43 @@ class _Page1State extends State<Page1> {
       drawer: CustomDrawer(),
       body: Column(
         children: <Widget>[
-          Container(
-            decoration: BoxDecoration(
-              border: Border.all(
-                color: Colors.grey, // Color of the border
-                width: 2.0, // Width of the border
+          Expanded(
+            child: Container(
+              decoration: BoxDecoration(
+                border: Border.all(
+                  color: Colors.grey, // Color of the border
+                  width: 2.0, // Width of the border
+                ),
               ),
-            ),
-            child: ListView.builder(
-              shrinkWrap: true,
-              // Set to true to avoid overflow
-              physics: AlwaysScrollableScrollPhysics(),
-              // Always enable scrolling
-              itemCount: selectableItems.length,
-              itemBuilder: (context, index) {
-                return ListTile(
-                  title: Text(selectableItems[index]),
-                  leading: Checkbox(
-                    value: selectedItemStatus[index],
-                    onChanged: (bool? value) {
+              child: ListView.builder(
+                itemCount: selectableItems.length,
+                itemBuilder: (context, index) {
+                  return ListTile(
+                    title: Text(selectableItems[index]),
+                    leading: Checkbox(
+                      value: selectedItemStatus[index],
+                      onChanged: (bool? value) {
+                        setState(() {
+                          selectedItemStatus[index] = value!;
+                        });
+                      },
+                    ),
+                    onTap: () {
                       setState(() {
-                        selectedItemStatus[index] = value!;
+                        selectedItemStatus[index] = !selectedItemStatus[index];
                       });
                     },
-                  ),
-                  onTap: () {
-                    setState(() {
-                      selectedItemStatus[index] = !selectedItemStatus[index];
-                    });
-                  },
-                );
-              },
+                  );
+                },
+              ),
             ),
           ),
           Expanded(
             flex: 2,
-            // Adjust flex to control the space taken by the list and the rest of the content
             child: Center(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: <Widget>[
-                  // Existing widgets
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
@@ -120,10 +120,16 @@ class _Page1State extends State<Page1> {
                             isWhitelistMode = !isWhitelistMode;
                           });
                         },
-                        child: Text(isWhitelistMode
-                            ? 'Whitelist Mode'
-                            : 'Blacklist Mode'),
+                        child: Text(isWhitelistMode ? 'Whitelist Mode' : 'Blacklist Mode'),
                       ),
+                      ElevatedButton(
+                        onPressed: () {
+                          // Handle the button press
+                           clearList();
+
+                        },
+                        child: Text('Clear List'),
+                      )
                     ],
                   ),
                   Row(
@@ -139,6 +145,8 @@ class _Page1State extends State<Page1> {
                       ElevatedButton(
                         onPressed: () {
                           // Handle the button press
+                          addItem(_controller1.text);
+
                         },
                         child: const Text('Add Mac to List'),
                       ),
@@ -187,5 +195,8 @@ class _Page1State extends State<Page1> {
       ),
     );
   }
+
+
+
 
 }
