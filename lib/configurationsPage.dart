@@ -1,8 +1,9 @@
-import 'dart:html';
-
+import 'package:flutter/services.dart';
 import 'package:flutter/material.dart';
 import 'custom_drawer.dart';
 import 'dart:convert';
+
+
 class Page1 extends StatefulWidget {
   const Page1({super.key});
 
@@ -66,6 +67,39 @@ class _Page1State extends State<Page1> {
   }
 
   void addItem(String item) {
+    //check if item is already in the list
+    if (selectableItems.contains(item)) {
+      return;
+    }
+    //check if the item is a valid MAC address
+    RegExp regExp = new RegExp(
+      r"([0-9A-Fa-f]{2}[:-]){5}([0-9A-Fa-f]{2})",
+      caseSensitive: false,
+      multiLine: false,
+    );
+    if (!regExp.hasMatch(item)) {
+      //pop up an alert dialog
+      showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: Text("Invalid MAC Address"),
+            content: Text("Please enter a valid MAC address"),
+            actions: <Widget>[
+              TextButton(
+                child: Text("OK"),
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+              ),
+            ],
+          );
+        },
+      );
+      return;
+    }
+
+
     setState(() {
       selectableItems.add(item);
       selectedItemStatus.add(false); // Ensure selectedItemStatus is updated accordingly
@@ -241,14 +275,16 @@ class _Page1State extends State<Page1> {
                   SizedBox(height: 10),
                   Row(
                     children: [
-                      Expanded(
-                        child: TextFormField(
-                          controller: _controller1,
-                          decoration: const InputDecoration(
-                            hintText: 'Enter Mac address to be added to the list',
-                          ),
-                        ),
-                      ),
+                  Expanded(
+                  child: TextFormField(
+                  controller: _controller1,
+                    decoration: const InputDecoration(
+                      hintText: 'Enter MAC address to be added to the list',
+                    ),
+
+                  ),
+            ),
+
                       SizedBox(width: 10),
                       ElevatedButton(
                         onPressed: () {
