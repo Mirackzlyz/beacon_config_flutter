@@ -89,8 +89,8 @@ flutter:
 dependencies:
   flutter:
     sdk: flutter
-  flutter_blue: ^0.8.0
-  http: ^1.2.1  # Add the latest version of http package
 
+  flutter_blue: ^0.8.1
+  http: ^0.14.0
 
 
