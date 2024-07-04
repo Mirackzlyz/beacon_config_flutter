@@ -83,12 +83,14 @@ Future<ConfigResponse> httpGetConfig() async {
     final response = await http.get(Uri.parse('http://10.34.82.169/getConfig'));
     if (response.statusCode == 200) {
       print('Success!');
+      print(response.body);
+
        return parseConfigResponse(response.body);
 
     } else {
       print('Failed with status code: ${response.statusCode}');
       return ConfigResponse(
-        macAddresses: [],
+        macAddresses: ["Failed to get config"],
         rssiThreshold: 0,
         thresholdEnabled: true,
         isWhiteList: false,
@@ -99,7 +101,7 @@ Future<ConfigResponse> httpGetConfig() async {
   } catch (e) {
     print('Error: $e');
     return ConfigResponse(
-      macAddresses: [],
+      macAddresses: ["Error getting config"],
       rssiThreshold: 0,
       thresholdEnabled: true,
       isWhiteList: false,
@@ -111,8 +113,10 @@ Future<ConfigResponse> httpGetConfig() async {
 
 
 class _Page1State extends State<Page1> {
-  final TextEditingController _controller1 = TextEditingController();
-  final TextEditingController _controller2 = TextEditingController();
+  TextEditingController _controller1 = TextEditingController();
+  TextEditingController _controller2 = TextEditingController();
+  TextEditingController _scanIntervalController = TextEditingController();
+  TextEditingController _scanDurationController = TextEditingController();
   String dropdownValue = 'One';
   bool isWhitelistMode = false;
   bool isThresholdEnabled = true;
@@ -291,6 +295,7 @@ class _Page1State extends State<Page1> {
                     children: [
                       Expanded(
                         child: TextFormField(
+                          controller: _scanIntervalController,
                           decoration: InputDecoration(
                             hintText: 'Enter scan interval (ms)',
                           ),
@@ -303,6 +308,7 @@ class _Page1State extends State<Page1> {
                       SizedBox(width: 10),
                       Expanded(
                         child: TextFormField(
+                          controller: _scanDurationController,
                           decoration: InputDecoration(
                             hintText: 'Enter scan duration (ms)',
                           ),
@@ -419,19 +425,17 @@ class _Page1State extends State<Page1> {
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       ElevatedButton(
-                        onPressed: () {
-                          httpGetConfig();
-
+                        onPressed: () async {
+                          ConfigResponse response = await httpGetConfig();
                           setState(() {
-                            selectableItems.addAll(configResponse.macAddresses);
+                            configResponse = response;
+                            selectableItems.addAll(response.macAddresses);
                             selectedItemStatus = List<bool>.filled(selectableItems.length, false, growable: true);
-                            isThresholdEnabled = configResponse.thresholdEnabled;
-                            rssi = configResponse.rssiThreshold.toString();
-                            isWhitelistMode = configResponse.isWhiteList;
-                            scanInterval = configResponse.scanInterval;
-                            scanDuration = configResponse.scanDuration;
-
-
+                            isThresholdEnabled = response.thresholdEnabled;
+                            _controller2.text = response.rssiThreshold.toString();
+                            isWhitelistMode = response.isWhiteList;
+                            _scanIntervalController.text = response.scanInterval.toString();
+                            _scanDurationController.text = response.scanDuration.toString();
                           });
                         },
                         child: const Text('Get the current configurations'),
