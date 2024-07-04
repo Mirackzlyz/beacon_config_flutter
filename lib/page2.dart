@@ -27,8 +27,8 @@ class DeviceInfo {
 class Device {
   final String mac;
   final int rssi;
-  final String name;
-  final String advData;
+  final String? name;
+  final String? advData;
   final double distance;
 
   Device({
@@ -82,7 +82,7 @@ Future<List<DeviceInfo>> fetchData() async {
 
       List<DeviceInfo> devices = devicesJson.map((data) => DeviceInfo(
         rssi: data['rssi'] ?? -999, // Ensure this is an int in your JSON
-        deviceName: data['deviceName'],
+        deviceName: data['deviceName'] ?? 'Unknown',
         macAddress: data['macAddress'],
         approxDistance: data['approxDistance'],
         advertisementData: data['advertisementData'],
