@@ -1,28 +1,25 @@
 import 'dart:convert';
-
-import 'custom_drawer.dart' show CustomDrawer;
 import 'package:flutter/material.dart';
-//import http package
 import 'package:http/http.dart' as http;
-// Define your DeviceInfo class here (same as before)
+
+// Define DeviceInfo and Device classes
 class DeviceInfo {
-  int? rssi; // Making it nullable if RSSI can be null
+  int? rssi;
   String deviceName;
-  String? macAddress; // Making it nullable if MAC address can be null
-  String? approxDistance; // Making it nullable if approxDistance can be null
-  String? advertisementData; // Making it nullable if advertisementData can be null
+  String? macAddress;
+  String? approxDistance;
+  String? advertisementData;
   bool isSelected;
 
   DeviceInfo({
-    this.rssi, // Allow it to be null
-    required this.deviceName, // Assuming deviceName is always provided
-    this.macAddress, // Allow it to be null
-    this.approxDistance, // Allow it to be null
-    this.advertisementData, // Allow it to be null
+    this.rssi,
+    required this.deviceName,
+    this.macAddress,
+    this.approxDistance,
+    this.advertisementData,
     this.isSelected = false,
   });
 }
-
 
 class Device {
   final String mac;
@@ -66,22 +63,21 @@ DevicesResponse parseDevicesResponse(String responseBody) {
   final parsed = jsonDecode(responseBody);
   return DevicesResponse.fromJson(parsed);
 }
+
 String cleanJsonString(String jsonString) {
-  // This regex matches all control characters and non-printable characters except whitespace (space, tab)
   return jsonString.replaceAll(RegExp(r'[\x00-\x1F\x7F-\x9F]'), '');
 }
 
 Future<List<DeviceInfo>> fetchData() async {
   try {
     final response = await http.get(Uri.parse('http://10.34.82.169/getDevices'));
-    print(response.body);
     if (response.statusCode == 200) {
       String cleanJson = cleanJsonString(response.body);
       Map<String, dynamic> jsonResponse = json.decode(cleanJson);
       List<dynamic> devicesJson = jsonResponse['devices'];
 
       List<DeviceInfo> devices = devicesJson.map((data) => DeviceInfo(
-        rssi: data['rssi'] ?? -999, // Ensure this is an int in your JSON
+        rssi: data['rssi'] ?? -999,
         deviceName: data['deviceName'] ?? 'Unknown',
         macAddress: data['macAddress'],
         approxDistance: data['approxDistance'],
@@ -98,8 +94,6 @@ Future<List<DeviceInfo>> fetchData() async {
   }
 }
 
-
-// Define your DeviceInfoWidget class here (same as before)
 class DeviceInfoWidget extends StatefulWidget {
   final DeviceInfo deviceInfo;
   final Function(bool?)? onCheckboxChanged;
@@ -117,11 +111,10 @@ class DeviceInfoWidget extends StatefulWidget {
 class _DeviceInfoWidgetState extends State<DeviceInfoWidget> {
   @override
   Widget build(BuildContext context) {
-
     return ListTile(
       title: Text(widget.deviceInfo.deviceName),
       subtitle: Text(
-          'MAC: ${widget.deviceInfo.macAddress}, RSSI: ${widget.deviceInfo.rssi}, Distance: ${widget.deviceInfo.approxDistance}, ADV: ${widget.deviceInfo.advertisementData}'),
+          'MAC: ${widget.deviceInfo.macAddress ?? 'Unknown'}, RSSI: ${widget.deviceInfo.rssi ?? -999}, Distance: ${widget.deviceInfo.approxDistance ?? 'Unknown'}, ADV: ${widget.deviceInfo.advertisementData ?? 'Unknown'}'),
       trailing: Checkbox(
         value: widget.deviceInfo.isSelected,
         onChanged: widget.onCheckboxChanged,
@@ -136,16 +129,16 @@ class Page2 extends StatefulWidget {
 }
 
 class _Page2State extends State<Page2> {
-  List<DeviceInfo> devices = []; // Placeholder for devices list
+  List<DeviceInfo> devices = [];
 
   @override
   void initState() {
     super.initState();
-    _populateDevices(); // Initially populate with placeholder data
+    _populateDevices();
   }
 
   void _populateDevices() {
-    // Placeholder data - replace with actual data fetching logic
+    // Initially populate with placeholder data
     devices = [
       DeviceInfo(
         rssi: 50,
@@ -192,7 +185,6 @@ class _Page2State extends State<Page2> {
       appBar: AppBar(
         title: Text('Page 2'),
       ),
-      drawer: CustomDrawer(),
       body: Column(
         children: [
           Expanded(
@@ -215,11 +207,7 @@ class _Page2State extends State<Page2> {
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
               ElevatedButton(
-                onPressed: () {
-                  //fetch data from the server
-                  fetchDataAndUpdateDevices();
-
-                },
+                onPressed: fetchDataAndUpdateDevices,
                 child: Text('Fetch Data'),
               ),
               ElevatedButton(
@@ -253,4 +241,10 @@ class _Page2State extends State<Page2> {
       ),
     );
   }
+}
+
+void main() {
+  runApp(MaterialApp(
+    home: Page2(),
+  ));
 }
