@@ -2,7 +2,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter/material.dart';
 import 'custom_drawer.dart';
 import 'dart:convert';
-
+import 'package:http/http.dart' as http;
 
 class Page1 extends StatefulWidget {
   const Page1({super.key});
@@ -10,6 +10,43 @@ class Page1 extends StatefulWidget {
   @override
   _Page1State createState() => _Page1State();
 }
+
+class ConfigResponse {
+  final List<String> macAddresses;
+  final int rssiThreshold;
+  final bool thresholdEnabled;
+  final bool isWhiteList;
+  final int scanInterval;
+  final int scanDuration;
+
+  ConfigResponse({
+    required this.macAddresses,
+    required this.rssiThreshold,
+    required this.thresholdEnabled,
+    required this.isWhiteList,
+    required this.scanInterval,
+    required this.scanDuration,
+  });
+
+
+
+
+  factory ConfigResponse.fromJson(Map<String, dynamic> json) {
+    return ConfigResponse(
+      macAddresses: List<String>.from(json['macAddresses']),
+      rssiThreshold: json['rssiThreshold'],
+      thresholdEnabled: json['thresholdEnabled'],
+      isWhiteList: json['isWhiteList'],
+      scanInterval: json['scanInterval'],
+      scanDuration: json['scanDuration'],
+    );
+  }
+}
+ConfigResponse parseConfigResponse(String responseBody) {
+  final parsed = jsonDecode(responseBody);
+  return ConfigResponse.fromJson(parsed);
+}
+
 
 
 
@@ -31,12 +68,55 @@ class DeviceInfo {
   });
 }
 
+var configResponse = ConfigResponse(
+  macAddresses: [],
+  rssiThreshold: 0,
+  thresholdEnabled: true,
+  isWhiteList: false,
+  scanInterval: 5000,
+  scanDuration: 5000,
+);
 
+//simple httpget function to web to test the connection
+Future<ConfigResponse> httpGetConfig() async {
+  try {
+    final response = await http.get(Uri.parse('http://10.34.82.169/getConfig'));
+    if (response.statusCode == 200) {
+      print('Success!');
+      print(response.body);
+
+       return parseConfigResponse(response.body);
+
+    } else {
+      print('Failed with status code: ${response.statusCode}');
+      return ConfigResponse(
+        macAddresses: ["Failed to get config"],
+        rssiThreshold: 0,
+        thresholdEnabled: true,
+        isWhiteList: false,
+        scanInterval: 5000,
+        scanDuration: 5000,
+      );
+    }
+  } catch (e) {
+    print('Error: $e');
+    return ConfigResponse(
+      macAddresses: ["Error getting config"],
+      rssiThreshold: 0,
+      thresholdEnabled: true,
+      isWhiteList: false,
+      scanInterval: 5000,
+      scanDuration: 5000,
+    );
+  }
+}
 
 
 class _Page1State extends State<Page1> {
-  final TextEditingController _controller1 = TextEditingController();
-  final TextEditingController _controller2 = TextEditingController();
+  TextEditingController _controller1 = TextEditingController();
+  TextEditingController _controller2 = TextEditingController();
+  TextEditingController _scanIntervalController = TextEditingController();
+  TextEditingController _scanDurationController = TextEditingController();
   String dropdownValue = 'One';
   bool isWhitelistMode = false;
   bool isThresholdEnabled = true;
@@ -215,6 +295,7 @@ class _Page1State extends State<Page1> {
                     children: [
                       Expanded(
                         child: TextFormField(
+                          controller: _scanIntervalController,
                           decoration: InputDecoration(
                             hintText: 'Enter scan interval (ms)',
                           ),
@@ -227,6 +308,7 @@ class _Page1State extends State<Page1> {
                       SizedBox(width: 10),
                       Expanded(
                         child: TextFormField(
+                          controller: _scanDurationController,
                           decoration: InputDecoration(
                             hintText: 'Enter scan duration (ms)',
                           ),
@@ -343,8 +425,18 @@ class _Page1State extends State<Page1> {
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       ElevatedButton(
-                        onPressed: () {
-                          // Handle the first button press
+                        onPressed: () async {
+                          ConfigResponse response = await httpGetConfig();
+                          setState(() {
+                            configResponse = response;
+                            selectableItems.addAll(response.macAddresses);
+                            selectedItemStatus = List<bool>.filled(selectableItems.length, false, growable: true);
+                            isThresholdEnabled = response.thresholdEnabled;
+                            _controller2.text = response.rssiThreshold.toString();
+                            isWhitelistMode = response.isWhiteList;
+                            _scanIntervalController.text = response.scanInterval.toString();
+                            _scanDurationController.text = response.scanDuration.toString();
+                          });
                         },
                         child: const Text('Get the current configurations'),
                       ),
@@ -353,8 +445,20 @@ class _Page1State extends State<Page1> {
                   SizedBox(height: 10),
                   ElevatedButton(
                     onPressed: () {
-                      // Handle the second button press
+                      try {
+                        http.post(
+                          Uri.parse('http://10.34.82.169/sendConfig'),
+                          headers: <String, String>{
+                            'Content-Type': 'application/json; charset=UTF-8',
+                          },
+                          body: buildJson(),
+                        );
+                      } catch (e) {
+                        print('Error sending configuration: $e');
+                        // Handle the error gracefully (e.g., show a dialog to the user)
+                      }
                     },
+
                     child: const Text('Upload Configurations'),
                   ),
                   SizedBox(height: 10),

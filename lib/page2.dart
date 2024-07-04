@@ -1,60 +1,100 @@
 import 'dart:convert';
-
 import 'package:flutter/material.dart';
-//import http package
 import 'package:http/http.dart' as http;
-// Define your DeviceInfo class here (same as before)
+import 'custom_drawer.dart';
+
+// Define DeviceInfo and Device classes
 class DeviceInfo {
-  String rssi;
+  int? rssi;
   String deviceName;
-  String macAddress;
-  String approxDistance;
-  String advertisementData;
+  String? macAddress;
+  String? approxDistance;
+  String? advertisementData;
   bool isSelected;
 
   DeviceInfo({
-    required this.rssi,
+    this.rssi,
     required this.deviceName,
-    required this.macAddress,
-    required this.approxDistance,
-    required this.advertisementData,
+    this.macAddress,
+    this.approxDistance,
+    this.advertisementData,
     this.isSelected = false,
   });
+}
+
+class Device {
+  final String mac;
+  final int rssi;
+  final String? name;
+  final String? advData;
+  final double distance;
+
+  Device({
+    required this.mac,
+    required this.rssi,
+    required this.name,
+    required this.advData,
+    required this.distance,
+  });
+
+  factory Device.fromJson(Map<String, dynamic> json) {
+    return Device(
+      mac: json['mac'],
+      rssi: json['rssi'],
+      name: json['name'],
+      advData: json['advData'],
+      distance: json['distance'].toDouble(),
+    );
+  }
+}
+
+class DevicesResponse {
+  final List<Device> devices;
+
+  DevicesResponse({required this.devices});
+
+  factory DevicesResponse.fromJson(Map<String, dynamic> json) {
+    var list = json['devices'] as List;
+    List<Device> devicesList = list.map((i) => Device.fromJson(i)).toList();
+    return DevicesResponse(devices: devicesList);
+  }
+}
+
+DevicesResponse parseDevicesResponse(String responseBody) {
+  final parsed = jsonDecode(responseBody);
+  return DevicesResponse.fromJson(parsed);
+}
+
+String cleanJsonString(String jsonString) {
+  return jsonString.replaceAll(RegExp(r'[\x00-\x1F\x7F-\x9F]'), '');
 }
 
 Future<List<DeviceInfo>> fetchData() async {
   try {
     final response = await http.get(Uri.parse('http://10.34.82.169/getDevices'));
-
     if (response.statusCode == 200) {
-      // If the server returns a 200 OK response, parse the JSON
-      List<DeviceInfo> devices = [];
+      String cleanJson = cleanJsonString(response.body);
+      Map<String, dynamic> jsonResponse = json.decode(cleanJson);
+      List<dynamic> devicesJson = jsonResponse['devices'];
 
-      // Assuming your JSON response is an array of device information
-      List<dynamic> jsonResponse = json.decode(response.body);
-
-      devices = jsonResponse.map((data) => DeviceInfo(
-        rssi: data['rssi'],
-        deviceName: data['deviceName'],
+      List<DeviceInfo> devices = devicesJson.map((data) => DeviceInfo(
+        rssi: data['rssi'] ?? -999,
+        deviceName: data['deviceName'] ?? 'Unknown',
         macAddress: data['macAddress'],
         approxDistance: data['approxDistance'],
         advertisementData: data['advertisementData'],
-        isSelected: false, // Default value for isSelected
+        isSelected: false,
       )).toList();
 
       return devices;
     } else {
-      // If the server returns an error response, throw an exception
       throw Exception('Failed to load data: ${response.statusCode}');
     }
   } catch (e) {
-    // Handle any other exceptions that might occur
     throw Exception('Failed to load data: $e');
   }
 }
 
-
-// Define your DeviceInfoWidget class here (same as before)
 class DeviceInfoWidget extends StatefulWidget {
   final DeviceInfo deviceInfo;
   final Function(bool?)? onCheckboxChanged;
@@ -75,7 +115,7 @@ class _DeviceInfoWidgetState extends State<DeviceInfoWidget> {
     return ListTile(
       title: Text(widget.deviceInfo.deviceName),
       subtitle: Text(
-          'MAC: ${widget.deviceInfo.macAddress}, RSSI: ${widget.deviceInfo.rssi}, Distance: ${widget.deviceInfo.approxDistance}, ADV: ${widget.deviceInfo.advertisementData}'),
+          'MAC: ${widget.deviceInfo.macAddress ?? 'Unknown'}, RSSI: ${widget.deviceInfo.rssi ?? -999}, Distance: ${widget.deviceInfo.approxDistance ?? 'Unknown'}, ADV: ${widget.deviceInfo.advertisementData ?? 'Unknown'}'),
       trailing: Checkbox(
         value: widget.deviceInfo.isSelected,
         onChanged: widget.onCheckboxChanged,
@@ -90,19 +130,19 @@ class Page2 extends StatefulWidget {
 }
 
 class _Page2State extends State<Page2> {
-  List<DeviceInfo> devices = []; // Placeholder for devices list
+  List<DeviceInfo> devices = [];
 
   @override
   void initState() {
     super.initState();
-    _populateDevices(); // Initially populate with placeholder data
+    _populateDevices();
   }
 
   void _populateDevices() {
-    // Placeholder data - replace with actual data fetching logic
+    // Initially populate with placeholder data
     devices = [
       DeviceInfo(
-        rssi: '-50',
+        rssi: 50,
         deviceName: 'Device 1',
         macAddress: '00:11:22:33:44:55',
         approxDistance: '1m',
@@ -110,7 +150,7 @@ class _Page2State extends State<Page2> {
         isSelected: false,
       ),
       DeviceInfo(
-        rssi: '-60',
+        rssi: 60,
         deviceName: 'Device 2',
         macAddress: '66:77:88:99:AA:BB',
         approxDistance: '2m',
@@ -118,7 +158,7 @@ class _Page2State extends State<Page2> {
         isSelected: false,
       ),
       DeviceInfo(
-        rssi: '-70',
+        rssi: 70,
         deviceName: 'Device 3',
         macAddress: 'CC:DD:EE:FF:00:11',
         approxDistance: '3m',
@@ -146,6 +186,7 @@ class _Page2State extends State<Page2> {
       appBar: AppBar(
         title: Text('Page 2'),
       ),
+      drawer: CustomDrawer(),
       body: Column(
         children: [
           Expanded(
@@ -168,11 +209,7 @@ class _Page2State extends State<Page2> {
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
               ElevatedButton(
-                onPressed: () {
-                  //fetch data from the server
-                  fetchDataAndUpdateDevices();
-
-                },
+                onPressed: fetchDataAndUpdateDevices,
                 child: Text('Fetch Data'),
               ),
               ElevatedButton(
@@ -206,4 +243,10 @@ class _Page2State extends State<Page2> {
       ),
     );
   }
+}
+
+void main() {
+  runApp(MaterialApp(
+    home: Page2(),
+  ));
 }
