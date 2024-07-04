@@ -56,9 +56,9 @@ class _Page1State extends State<Page1> {
   String buildJson() {
     Map<String, dynamic> data = {
       "macAddresses": selectableItems,
-      "tresholdEnabled": isThresholdEnabled,
+      "thresholdEnabled": isThresholdEnabled,
       "rssiThreshold": int.tryParse(rssi) ?? 0,
-      "listMode": isWhitelistMode ? "whitelist" : "blacklist",
+      "isWhiteList": isWhitelistMode,
       "scanInterval": scanInterval,
       "scanDuration": scanDuration,
     };
@@ -317,7 +317,24 @@ class _Page1State extends State<Page1> {
                   SizedBox(height: 10),
                   ElevatedButton(
                     onPressed: () {
-                      print(buildJson());
+                      //build and print json data to pop up
+                      showDialog(
+                        context: context,
+                        builder: (BuildContext context) {
+                          return AlertDialog(
+                            title: Text("JSON Data"),
+                            content: Text(buildJson()),
+                            actions: <Widget>[
+                              TextButton(
+                                child: Text("OK"),
+                                onPressed: () {
+                                  Navigator.of(context).pop();
+                                },
+                              ),
+                            ],
+                          );
+                        },
+                      );
                     },
                     child: const Text('Print JSON'),
                   ),

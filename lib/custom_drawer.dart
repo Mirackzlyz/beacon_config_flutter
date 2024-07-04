@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'configurationsPage.dart'; // Ensure this file defines a Page1 class
 import 'page2.dart'; // Ensure this file defines a Page2 class
 import 'main.dart';
+import 'log_history.dart';
 
 //define a custom drawer to used in all pages
 class CustomDrawer extends StatelessWidget {
@@ -54,6 +55,9 @@ class CustomDrawer extends StatelessWidget {
             leading: Icon(Icons.three_k),
             title: Text('History And Logs Page'),
             onTap: () {
+              Navigator.of(context).pushReplacement(
+                MaterialPageRoute(builder: (context) => LogHistoryPage()),
+              );
 
             }
           )
