@@ -89,9 +89,8 @@ flutter:
 dependencies:
   flutter:
     sdk: flutter
-
   flutter_blue: ^0.8.0
-  http: ^1.2.1
-#dependency_overrides:
-  #http: ^1.2.1 # veya beacon_config_flutter ile uyumlu bir sürüm
+  http: ^1.2.1  # Add the latest version of http package
+
+
 
