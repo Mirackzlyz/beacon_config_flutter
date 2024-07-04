@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'custom_drawer.dart';
 
 // Define DeviceInfo and Device classes
 class DeviceInfo {
@@ -185,6 +186,7 @@ class _Page2State extends State<Page2> {
       appBar: AppBar(
         title: Text('Page 2'),
       ),
+      drawer: CustomDrawer(),
       body: Column(
         children: [
           Expanded(
