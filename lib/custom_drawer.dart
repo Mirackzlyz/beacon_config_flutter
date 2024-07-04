@@ -52,14 +52,14 @@ class CustomDrawer extends StatelessWidget {
             },
           ),
           ListTile(
-            leading: Icon(Icons.three_k),
-            title: Text('History And Logs Page'),
-            onTap: () {
-              Navigator.of(context).pushReplacement(
-                MaterialPageRoute(builder: (context) => LogHistoryPage()),
-              );
+              leading: Icon(Icons.three_k),
+              title: Text('History And Logs Page'),
+              onTap: () {
+                Navigator.of(context).pushReplacement(
+                  MaterialPageRoute(builder: (context) => LogHistoryPage()),
+                );
 
-            }
+              }
           )
         ],
       ),
