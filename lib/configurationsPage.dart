@@ -2,7 +2,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter/material.dart';
 import 'custom_drawer.dart';
 import 'dart:convert';
-
+import 'package:http/http.dart' as http;
 
 class Page1 extends StatefulWidget {
   const Page1({super.key});
@@ -10,6 +10,42 @@ class Page1 extends StatefulWidget {
   @override
   _Page1State createState() => _Page1State();
 }
+
+class ConfigResponse {
+  final List<String> macAddresses;
+  final int rssiThreshold;
+  final bool thresholdEnabled;
+  final bool isWhiteList;
+  final int scanInterval;
+  final int scanDuration;
+
+  ConfigResponse({
+    required this.macAddresses,
+    required this.rssiThreshold,
+    required this.thresholdEnabled,
+    required this.isWhiteList,
+    required this.scanInterval,
+    required this.scanDuration,
+  });
+
+
+
+  factory ConfigResponse.fromJson(Map<String, dynamic> json) {
+    return ConfigResponse(
+      macAddresses: List<String>.from(json['macAddresses']),
+      rssiThreshold: json['rssiThreshold'],
+      thresholdEnabled: json['thresholdEnabled'],
+      isWhiteList: json['isWhiteList'],
+      scanInterval: json['scanInterval'],
+      scanDuration: json['scanDuration'],
+    );
+  }
+}
+void parseConfigResponse(String responseBody) {
+  final parsed = jsonDecode(responseBody);
+  configResponse = ConfigResponse.fromJson(parsed);
+}
+
 
 
 
@@ -31,8 +67,30 @@ class DeviceInfo {
   });
 }
 
+var configResponse = ConfigResponse(
+  macAddresses: [],
+  rssiThreshold: 0,
+  thresholdEnabled: true,
+  isWhiteList: false,
+  scanInterval: 5000,
+  scanDuration: 5000,
+);
 
-
+//simple httpget function to web to test the connection
+Future<void> httpGet() async {
+  try {
+    final response = await http.get(Uri.parse('http://10.34.82.169/getConfig'));
+    if (response.statusCode == 200) {
+      print('Success!');
+      print(response.body);
+      print(response.body);
+    } else {
+      print('Failed with status code: ${response.statusCode}');
+    }
+  } catch (e) {
+    print('Error: $e');
+  }
+}
 
 class _Page1State extends State<Page1> {
   final TextEditingController _controller1 = TextEditingController();
@@ -344,7 +402,21 @@ class _Page1State extends State<Page1> {
                     children: [
                       ElevatedButton(
                         onPressed: () {
-                          // Handle the first button press
+
+                          setState(() {
+                            httpGet();
+
+
+                            selectableItems = configResponse.macAddresses;
+                            isThresholdEnabled = configResponse.thresholdEnabled;
+                            rssi = configResponse.rssiThreshold.toString();
+                            isWhitelistMode = configResponse.isWhiteList;
+                            scanInterval = configResponse.scanInterval;
+                            scanDuration = configResponse.scanDuration;
+
+                            // Initialize selectedItemStatus with the correct length
+                            selectedItemStatus = List<bool>.filled(selectableItems.length, false, growable: true);
+                          });
                         },
                         child: const Text('Get the current configurations'),
                       ),
@@ -353,8 +425,20 @@ class _Page1State extends State<Page1> {
                   SizedBox(height: 10),
                   ElevatedButton(
                     onPressed: () {
-                      // Handle the second button press
+                      try {
+                        http.post(
+                          Uri.parse('http://10.34.82.169/sendConfig'),
+                          headers: <String, String>{
+                            'Content-Type': 'application/json; charset=UTF-8',
+                          },
+                          body: buildJson(),
+                        );
+                      } catch (e) {
+                        print('Error sending configuration: $e');
+                        // Handle the error gracefully (e.g., show a dialog to the user)
+                      }
                     },
+
                     child: const Text('Upload Configurations'),
                   ),
                   SizedBox(height: 10),

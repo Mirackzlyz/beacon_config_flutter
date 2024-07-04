@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'custom_drawer.dart' show CustomDrawer;
 import 'package:flutter/material.dart';
 //import http package
 import 'package:http/http.dart' as http;
@@ -72,6 +73,7 @@ class DeviceInfoWidget extends StatefulWidget {
 class _DeviceInfoWidgetState extends State<DeviceInfoWidget> {
   @override
   Widget build(BuildContext context) {
+
     return ListTile(
       title: Text(widget.deviceInfo.deviceName),
       subtitle: Text(
@@ -146,6 +148,7 @@ class _Page2State extends State<Page2> {
       appBar: AppBar(
         title: Text('Page 2'),
       ),
+      drawer: CustomDrawer(),
       body: Column(
         children: [
           Expanded(
