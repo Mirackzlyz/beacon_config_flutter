@@ -42,9 +42,9 @@ class ConfigResponse {
     );
   }
 }
-void parseConfigResponse(String responseBody) {
+ConfigResponse parseConfigResponse(String responseBody) {
   final parsed = jsonDecode(responseBody);
-  configResponse = ConfigResponse.fromJson(parsed);
+  return ConfigResponse.fromJson(parsed);
 }
 
 
@@ -78,22 +78,37 @@ var configResponse = ConfigResponse(
 );
 
 //simple httpget function to web to test the connection
-Future<void> httpGetConfig() async {
+Future<ConfigResponse> httpGetConfig() async {
   try {
     final response = await http.get(Uri.parse('http://10.34.82.169/getConfig'));
     if (response.statusCode == 200) {
       print('Success!');
-      //parse the response ans set the ui elements to the response
-      parseConfigResponse(response.body);
+       return parseConfigResponse(response.body);
 
-      print(response.body);
     } else {
       print('Failed with status code: ${response.statusCode}');
+      return ConfigResponse(
+        macAddresses: [],
+        rssiThreshold: 0,
+        thresholdEnabled: true,
+        isWhiteList: false,
+        scanInterval: 5000,
+        scanDuration: 5000,
+      );
     }
   } catch (e) {
     print('Error: $e');
+    return ConfigResponse(
+      macAddresses: [],
+      rssiThreshold: 0,
+      thresholdEnabled: true,
+      isWhiteList: false,
+      scanInterval: 5000,
+      scanDuration: 5000,
+    );
   }
 }
+
 
 class _Page1State extends State<Page1> {
   final TextEditingController _controller1 = TextEditingController();
@@ -405,9 +420,17 @@ class _Page1State extends State<Page1> {
                     children: [
                       ElevatedButton(
                         onPressed: () {
+                          httpGetConfig();
 
                           setState(() {
-                            httpGetConfig();
+                            selectableItems.addAll(configResponse.macAddresses);
+                            selectedItemStatus = List<bool>.filled(selectableItems.length, false, growable: true);
+                            isThresholdEnabled = configResponse.thresholdEnabled;
+                            rssi = configResponse.rssiThreshold.toString();
+                            isWhitelistMode = configResponse.isWhiteList;
+                            scanInterval = configResponse.scanInterval;
+                            scanDuration = configResponse.scanDuration;
+
 
                           });
                         },
