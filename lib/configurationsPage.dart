@@ -30,6 +30,7 @@ class ConfigResponse {
 
 
 
+
   factory ConfigResponse.fromJson(Map<String, dynamic> json) {
     return ConfigResponse(
       macAddresses: List<String>.from(json['macAddresses']),
@@ -77,12 +78,14 @@ var configResponse = ConfigResponse(
 );
 
 //simple httpget function to web to test the connection
-Future<void> httpGet() async {
+Future<void> httpGetConfig() async {
   try {
     final response = await http.get(Uri.parse('http://10.34.82.169/getConfig'));
     if (response.statusCode == 200) {
       print('Success!');
-      print(response.body);
+      //parse the response ans set the ui elements to the response
+      parseConfigResponse(response.body);
+
       print(response.body);
     } else {
       print('Failed with status code: ${response.statusCode}');
@@ -404,18 +407,8 @@ class _Page1State extends State<Page1> {
                         onPressed: () {
 
                           setState(() {
-                            httpGet();
+                            httpGetConfig();
 
-
-                            selectableItems = configResponse.macAddresses;
-                            isThresholdEnabled = configResponse.thresholdEnabled;
-                            rssi = configResponse.rssiThreshold.toString();
-                            isWhitelistMode = configResponse.isWhiteList;
-                            scanInterval = configResponse.scanInterval;
-                            scanDuration = configResponse.scanDuration;
-
-                            // Initialize selectedItemStatus with the correct length
-                            selectedItemStatus = List<bool>.filled(selectableItems.length, false, growable: true);
                           });
                         },
                         child: const Text('Get the current configurations'),
