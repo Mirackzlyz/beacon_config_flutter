@@ -72,6 +72,7 @@ String cleanJsonString(String jsonString) {
 Future<List<DeviceInfo>> fetchData() async {
   try {
     final response = await http.get(Uri.parse('http://10.34.82.169/getDevices'));
+    print(response.body);
     if (response.statusCode == 200) {
       String cleanJson = cleanJsonString(response.body);
       Map<String, dynamic> jsonResponse = json.decode(cleanJson);
@@ -94,7 +95,6 @@ Future<List<DeviceInfo>> fetchData() async {
     throw Exception('Failed to load data: $e');
   }
 }
-
 class DeviceInfoWidget extends StatefulWidget {
   final DeviceInfo deviceInfo;
   final Function(bool?)? onCheckboxChanged;
@@ -112,6 +112,7 @@ class DeviceInfoWidget extends StatefulWidget {
 class _DeviceInfoWidgetState extends State<DeviceInfoWidget> {
   @override
   Widget build(BuildContext context) {
+    // Corrected Widget build logic
     return ListTile(
       title: Text(widget.deviceInfo.deviceName),
       subtitle: Text(
@@ -135,37 +136,7 @@ class _Page2State extends State<Page2> {
   @override
   void initState() {
     super.initState();
-    _populateDevices();
-  }
-
-  void _populateDevices() {
-    // Initially populate with placeholder data
-    devices = [
-      DeviceInfo(
-        rssi: 50,
-        deviceName: 'Device 1',
-        macAddress: '00:11:22:33:44:55',
-        approxDistance: '1m',
-        advertisementData: 'Data 1',
-        isSelected: false,
-      ),
-      DeviceInfo(
-        rssi: 60,
-        deviceName: 'Device 2',
-        macAddress: '66:77:88:99:AA:BB',
-        approxDistance: '2m',
-        advertisementData: 'Data 2',
-        isSelected: false,
-      ),
-      DeviceInfo(
-        rssi: 70,
-        deviceName: 'Device 3',
-        macAddress: 'CC:DD:EE:FF:00:11',
-        approxDistance: '3m',
-        advertisementData: 'Data 3',
-        isSelected: false,
-      ),
-    ];
+    fetchDataAndUpdateDevices();
   }
 
   void fetchDataAndUpdateDevices() async {
@@ -176,12 +147,12 @@ class _Page2State extends State<Page2> {
       });
     } catch (e) {
       print('Error fetching data: $e');
-      // Handle error (e.g., show a snackbar)
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    // Corrected Widget build logic for Page2
     return Scaffold(
       appBar: AppBar(
         title: Text('Page 2'),
@@ -212,30 +183,7 @@ class _Page2State extends State<Page2> {
                 onPressed: fetchDataAndUpdateDevices,
                 child: Text('Fetch Data'),
               ),
-              ElevatedButton(
-                onPressed: () {
-                  // Handle button press
-                },
-                child: Text('Copy MAC Addresses'),
-              ),
-              ElevatedButton(
-                onPressed: () {
-                  // Handle button press
-                },
-                child: Text('Add to Favorites'),
-              ),
-              ElevatedButton(
-                onPressed: () {
-                  // Handle button press
-                },
-                child: Text('Button 4'),
-              ),
-              ElevatedButton(
-                onPressed: () {
-                  // Handle button press
-                },
-                child: Text('Button 5'),
-              ),
+              // Additional buttons as needed
             ],
           ),
           SizedBox(height: 16),

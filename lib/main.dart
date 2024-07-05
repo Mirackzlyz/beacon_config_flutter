@@ -42,6 +42,7 @@ class _MyHomePageState extends State<MyHomePage> {
       drawer: CustomDrawer(),
       body: Center(
         child: Text('Main Page'),
+
       ),
     );
   }
