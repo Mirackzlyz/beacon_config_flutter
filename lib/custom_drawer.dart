@@ -3,6 +3,7 @@ import 'configurationsPage.dart'; // Ensure this file defines a Page1 class
 import 'page2.dart'; // Ensure this file defines a Page2 class
 import 'main.dart';
 import 'log_history.dart';
+import 'room_page.dart';
 
 //define a custom drawer to used in all pages
 class CustomDrawer extends StatelessWidget {
@@ -60,7 +61,16 @@ class CustomDrawer extends StatelessWidget {
               );
 
             }
-          )
+          ),
+          ListTile(
+            leading: Icon(Icons.room),
+            title: Text('Room Page'),
+            onTap: () {
+              Navigator.of(context).pushReplacement(
+                MaterialPageRoute(builder: (context) => RoomPage()),
+              );
+            },
+          ),
         ],
       ),
     );
