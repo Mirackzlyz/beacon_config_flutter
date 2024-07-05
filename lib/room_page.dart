@@ -87,7 +87,7 @@ class DeviceDetailWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     return Card(
       child: Padding(
-        padding: const EdgeInsets.all(8.0),
+        padding: const EdgeInsets.all(3.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -159,7 +159,7 @@ class _RoomPageState extends State<RoomPage> {
       drawer: CustomDrawer(),
       body: GridView.builder(
         gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-          crossAxisCount: 2,
+          crossAxisCount: 4,
           childAspectRatio: 3 / 2,
         ),
         itemCount: devices.length,
