@@ -1,11 +1,27 @@
-import 'package:flutter/services.dart';
 import 'package:flutter/material.dart';
-import 'custom_drawer.dart';
-import 'dart:convert';
 import 'package:http/http.dart' as http;
+import 'dart:convert';
+
+import 'custom_drawer.dart';
+
+void main() {
+  runApp(const MyApp());
+}
+
+class MyApp extends StatelessWidget {
+  const MyApp({Key? key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return const MaterialApp(
+      title: 'Flutter Demo',
+      home: Page1(),
+    );
+  }
+}
 
 class Page1 extends StatefulWidget {
-  const Page1({super.key});
+  const Page1({Key? key}) : super(key: key);
 
   @override
   _Page1State createState() => _Page1State();
@@ -28,9 +44,6 @@ class ConfigResponse {
     required this.scanDuration,
   });
 
-
-
-
   factory ConfigResponse.fromJson(Map<String, dynamic> json) {
     return ConfigResponse(
       macAddresses: List<String>.from(json['macAddresses']),
@@ -42,13 +55,11 @@ class ConfigResponse {
     );
   }
 }
+
 ConfigResponse parseConfigResponse(String responseBody) {
   final parsed = jsonDecode(responseBody);
   return ConfigResponse.fromJson(parsed);
 }
-
-
-
 
 class DeviceInfo {
   String rssi;
@@ -77,16 +88,13 @@ var configResponse = ConfigResponse(
   scanDuration: 5000,
 );
 
-//simple httpget function to web to test the connection
 Future<ConfigResponse> httpGetConfig() async {
   try {
     final response = await http.get(Uri.parse('http://10.34.82.169/getConfig'));
     if (response.statusCode == 200) {
       print('Success!');
       print(response.body);
-
-       return parseConfigResponse(response.body);
-
+      return parseConfigResponse(response.body);
     } else {
       print('Failed with status code: ${response.statusCode}');
       return ConfigResponse(
@@ -110,7 +118,6 @@ Future<ConfigResponse> httpGetConfig() async {
     );
   }
 }
-
 
 class _Page1State extends State<Page1> {
   TextEditingController _controller1 = TextEditingController();
@@ -152,7 +159,7 @@ class _Page1State extends State<Page1> {
       return;
     }
     //check if the item is a valid MAC address
-    RegExp regExp = new RegExp(
+    RegExp regExp = RegExp(
       r"([0-9A-Fa-f]{2}[:-]){5}([0-9A-Fa-f]{2})",
       caseSensitive: false,
       multiLine: false,
@@ -179,11 +186,9 @@ class _Page1State extends State<Page1> {
       return;
     }
 
-
     setState(() {
       selectableItems.add(item);
       selectedItemStatus.add(false); // Ensure selectedItemStatus is updated accordingly
-
     });
   }
 
@@ -194,8 +199,8 @@ class _Page1State extends State<Page1> {
         selectedItemStatus.removeAt(index); // Ensure selectedItemStatus is updated accordingly
       }
     });
-
   }
+
   void removeSelectedItems() {
     setState(() {
       for (int i = selectedItemStatus.length - 1; i >= 0; i--) {
@@ -206,6 +211,7 @@ class _Page1State extends State<Page1> {
       }
     });
   }
+
   void clearList() {
     setState(() {
       selectableItems.clear();
@@ -262,7 +268,6 @@ class _Page1State extends State<Page1> {
                 children: <Widget>[
                   Text(
                     'RSSI Threshold Value: ' + rssi,
-                    style: Theme.of(context).textTheme.headline4,
                   ),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
@@ -328,45 +333,31 @@ class _Page1State extends State<Page1> {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: <Widget>[
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      ElevatedButton(
-                        onPressed: () {
-                          setState(() {
-                            isWhitelistMode = !isWhitelistMode;
-                          });
-                        },
-                        child: Text(isWhitelistMode ? 'Whitelist Mode' : 'Blacklist Mode'),
-                      ),
-                      ElevatedButton(
-                        onPressed: () {
-                          // Handle the button press
-                          clearList();
-                        },
-                        child: Text('Clear List'),
-                      ),
-                      ElevatedButton(
-                        onPressed: () {
-                          removeSelectedItems();
-                        },
-                        child: Text('Delete MAC List'),
-                      ),
-                    ],
+                  ElevatedButton(
+                    onPressed: () {
+                      // Handle the button press
+                      clearList();
+                    },
+                    child: Text('Clear List'),
+                  ),
+                  SizedBox(height: 10),
+                  ElevatedButton(
+                    onPressed: () {
+                      removeSelectedItems();
+                    },
+                    child: Text('Delete MAC List'),
                   ),
                   SizedBox(height: 10),
                   Row(
                     children: [
-                  Expanded(
-                  child: TextFormField(
-                  controller: _controller1,
-                    decoration: const InputDecoration(
-                      hintText: 'Enter MAC address to be added to the list',
-                    ),
-
-                  ),
-            ),
-
+                      Expanded(
+                        child: TextFormField(
+                          controller: _controller1,
+                          decoration: const InputDecoration(
+                            hintText: 'Enter MAC address to be added to the list',
+                          ),
+                        ),
+                      ),
                       SizedBox(width: 10),
                       ElevatedButton(
                         onPressed: () {
@@ -390,7 +381,9 @@ class _Page1State extends State<Page1> {
                       SizedBox(width: 10),
                       ElevatedButton(
                         onPressed: () {
-                          setRssiThreshold(_controller2.text);
+                          setState(() {
+                            rssi = _controller2.text;
+                          });
                         },
                         child: const Text('Set RSSI Threshold'),
                       ),
@@ -430,7 +423,8 @@ class _Page1State extends State<Page1> {
                           setState(() {
                             configResponse = response;
                             selectableItems.addAll(response.macAddresses);
-                            selectedItemStatus = List<bool>.filled(selectableItems.length, false, growable: true);
+                            selectedItemStatus =
+                            List<bool>.filled(selectableItems.length, false, growable: true);
                             isThresholdEnabled = response.thresholdEnabled;
                             _controller2.text = response.rssiThreshold.toString();
                             isWhitelistMode = response.isWhiteList;
@@ -458,7 +452,6 @@ class _Page1State extends State<Page1> {
                         // Handle the error gracefully (e.g., show a dialog to the user)
                       }
                     },
-
                     child: const Text('Upload Configurations'),
                   ),
                   SizedBox(height: 10),
@@ -470,17 +463,4 @@ class _Page1State extends State<Page1> {
       ),
     );
   }
-
-
-
-  void setRssiThreshold(String text) {
-    setState(() {
-      rssi = text;
-    });
-
-
-
-  }
-
-
 }
